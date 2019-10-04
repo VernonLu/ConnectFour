@@ -4,14 +4,14 @@ using namespace std;
 
 //char** map;
 const int col = 7, row = 6;
-char map[row][col];
+char map[col][row];
 const char player[2] = { 'O','X' };
 int curtPlayer = 0;
 
 
 void init() {
-	for (int i = 0; i < row; i++) {
-		for (int j = 0; j < col; j++) {
+	for (int i = 0; i < col; i++) {
+		for (int j = 0; j < row; j++) {
 			map[i][j] = '-';
 		}
 	}
@@ -19,12 +19,18 @@ void init() {
 
 
 void showMap() {
-	for (int i = 0; i < row; i++) {
+	for (int i = row - 1; i >= 0; i--) {
+		cout << "\t";
 		for (int j = 0; j < col; j++) {
-			cout << map[i][j] << " ";
+			cout << map[j][i] << " ";
 		}
 		cout << endl;
 	}
+	cout << "\t";
+	for (int i = 0; i < col; i++) {
+		cout << i + 1 << " ";
+	}
+	cout << endl;
 }
 
 void showPlayer() {
@@ -38,15 +44,16 @@ bool check() {
 void gameLoop() {
 	showMap();
 	showPlayer();
-	//char in = cin.get();
-	char in = 0;
-	cin.get(in);
-
-	if ((int)in > 48 && (int)in < 56) {
-		in -= 49;
-		curtPlayer = (curtPlayer + 1) % 2;
+	char c;
+	while ((c = cin.get()) != EOF) {
+		int num = (int)c;
+		if (num > 0 && num < col + 1) {
+			num -= 1;
+			curtPlayer = (curtPlayer + 1) % 2;
+		}
 	}
-	cout << "you entered " << (int)in << endl;
+	system("CLS");
+	cout << "you entered:" << c << endl;
 }
 
 
