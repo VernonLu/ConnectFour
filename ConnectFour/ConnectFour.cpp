@@ -154,6 +154,7 @@ int curtPlayer = 0;
 //
 //	gameLoop();
 //}
+
 char getSingleChar() {
 	char c = cin.get();
 	cin.ignore(1, '\n');
