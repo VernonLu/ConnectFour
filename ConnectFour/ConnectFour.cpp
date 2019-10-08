@@ -64,8 +64,8 @@ public:
 		}
 		return -1;
 	}
-	int remove(int col) {
-		if (map[col][0] == '-') { return -1; }
+	int remove(int col, char ch) {
+		if (map[col][0] != ch) { return -1; }
 
 		int row = rowCount - 1;
 
@@ -86,7 +86,7 @@ public:
 	bool checkLink(int col, int row, int num, int wrap) {
 		int count = 1;
 		char label = map[col][row];
-
+		if (label == '-') { return false; }
 		//Vertical
 		for (int i = row - 1; i >= 0; i--) {
 			if (map[col][i] == label) { ++count; }
@@ -154,6 +154,13 @@ public:
 	}
 	bool isEmpty() {
 		return piecesNum == 0 ? true : false;
+	}
+
+	bool hasPieceInBottom(char ch) {
+		for (int i = 0; i < colCount; i++) {
+			if (map[i][0] == ch) { return true; }
+		}
+		return false;
 	}
 };
 
@@ -256,7 +263,7 @@ int main() {
 			//Player Input
 			int cIndex = 0, rIndex = 0;
 			bool removeFlag = false;
-			if (canRemove && !map->isEmpty()) {
+			if (canRemove && map->hasPieceInBottom(player[curtPlayer])) {
 				cout << "Do you want to remove from the bottom? ";
 				removeFlag = getBoolean();
 			}
@@ -288,9 +295,9 @@ int main() {
 				for (;;) {
 					cout << "Please Enter a column to remove ";
 					cIndex = getNumber(1, col) - 1;
-					rIndex = map->remove(cIndex);
+					rIndex = map->remove(cIndex, player[curtPlayer]);
 					if (rIndex == -1) {
-						cout << "This column is empty! Try another one." << endl;
+						cout << "Cannot remove from this column! Try another one." << endl;
 					}
 					else { break; }
 				}
