@@ -2,47 +2,33 @@
 #include <vector>
 using namespace std;
 
-class Piece {
-public:
-	int col;
-	int row;
-	char label;
-	void set(int c,int r, char ch){
-		col = c;
-		row = r;
-		label = ch;
-	}
-};
+
+const char player[2] = { 'O','X' };
+int curtPlayer = 0;
 
 class Map {
 private:
 	int colCount = 7, rowCount = 6;
-	vector<vector<char>> map;
-	Piece lastPiece;
+	char** map;
 public:
 	void initMap() {
+		map = new char* [colCount];
 		for (int i = 0; i < colCount; i++) {
-			vector<char> tmp;
+			map[i] = new char[rowCount];
 			for (int j = 0; j < rowCount; j++) {
-				tmp.push_back('-');
+				map[i][j] = '-';
 			}
-			map.push_back(tmp);
 		}
+
 	}
-	Map() {
-		initMap();
-	}
+
+	Map() { initMap(); }
 	Map(int col, int row) {
 		colCount = col;
 		rowCount = row;
 		initMap();
 	}
-	~Map() {
-		for (vector<char> col : map) {
-			vector<char>().swap(col);
-		}
-		vector<vector<char>>().swap(map);
-	}
+	~Map() { }
 
 	int cSize() { return colCount; }
 	int rSize() { return rowCount; }
@@ -64,78 +50,79 @@ public:
 		for (int i = 0; i < rowCount; i++) {
 			if (map[col][i] == '-') { 
 				map[col][i] = ch; 
-				lastPiece.set(col, i, ch);
 				return i;
 			}
 		}
 		return -1;
 	}
 
-	bool checkLink() {
+	bool checkLink(int col, int row, int num) {
 		int count = 1;
+		char label = map[col][row];
 		//Vertical
-		for (int i = lastPiece.row - 1; i >= 0; i--) {
-			if (map[lastPiece.col][i] == lastPiece.label) { ++count; }
+		for (int i = row - 1; i >= 0; i--) {
+			if (map[col][i] == label) { ++count; }
 			else { break; }
 		}
-		if (count >= 4) { return true; }
+		if (count >= num) { cout << "V"; return true; }
 
 		//Horizontal
 		int countPve = 1; int countNve = 0;
-		for (int i = lastPiece.col + 1; i<colCount; i++) {
-			if (map[i][lastPiece.row] == lastPiece.label) { ++countPve; }
+		for (int i = col + 1; i<colCount; i++) {
+			if (map[i][row] == label) { ++countPve; }
 			else { break; }
 		}
-		for (int i = lastPiece.col - 1; i >=0; i--) {
-			if (map[i][lastPiece.row] == lastPiece.label) { ++countNve; }
+		for (int i = col - 1; i >=0; i--) {
+			if (map[i][row] == label) { ++countNve; }
 			else { break; }
 		}
-		if (countPve + countNve >= 4) { return true; }
+		if (countPve + countNve >= num) { cout << "H"; return true; }
 
-		//Diagonal
+		//Diagonal (backslash)
 		countPve = 1; countNve = 0;
 		for (int i = 1;; i++) {
-			int indexCol = lastPiece.col + i;
-			int indexRow = lastPiece.row - i;
+			int indexCol = col + i;
+			int indexRow = row - i;
 			if (indexCol >= colCount || indexRow < 0) { break; }
 
-			if (map[indexCol][indexRow] == lastPiece.label) { ++countPve; }
+			if (map[indexCol][indexRow] == label) { ++countPve; }
 			else { break; }
 		}
 
 		for (int i = 1;; i++) {
-			int indexCol = lastPiece.col - i;
-			int indexRow = lastPiece.row + i;
+			int indexCol = col - i;
+			int indexRow = row + i;
 			if (indexCol <0 || indexRow >= rowCount) { break; }
 
-			if(map[indexCol][indexRow] == lastPiece.label) { ++countNve; }
+			if(map[indexCol][indexRow] == label) { ++countNve; }
 			else { break; }
 		}
-		if (countPve + countNve >= 4) { return true; }
+		if (countPve + countNve >= num) { cout << "backslash"; return true; }
 
-		//Diagonal
+		//Diagonal (slash)
 		countPve = 1; countNve = 0;
 		for (int i = 1;; i++) {
-			int indexCol = lastPiece.col + i;
-			int indexRow = lastPiece.row + i;
+			int indexCol = col + i;
+			int indexRow = row + i;
 			if (indexCol >= colCount || indexRow >= rowCount) { break; }
 
-			if (map[indexCol][indexRow] == lastPiece.label) { ++countPve; }
+			if (map[indexCol][indexRow] == label) { ++countPve; }
 			else { break; }
 		}
 
 		for (int i = 1;; i++) {
-			int indexCol = lastPiece.col - i;
-			int indexRow = lastPiece.row - i;
+			int indexCol = col - i;
+			int indexRow = row - i;
 			if (indexCol < 0 || indexRow < 0) { break; }
 
-			if (map[indexCol][indexRow] == lastPiece.label) { ++countNve; }
+			if (map[indexCol][indexRow] == label) { ++countNve; }
 			else { break; }
 		}
-		if (countPve + countNve >= 4) { return true; }
+		if (countPve + countNve >= num) { return true; }
 
 		return false;
 	}
+
 	bool isFull() {
 		for (int i = 0; i < rowCount; i++) {
 			for (int j = 0; j < colCount; j++) {
@@ -147,74 +134,203 @@ public:
 
 };
 
-const char player[2] = { 'O','X' };
-int curtPlayer = 0;
 
-//int gameLoop() {
-//
-//	gameLoop();
-//}
-
+#pragma region GET PLAYER INPUT
 char getSingleChar() {
-	char c = cin.get();
-	cin.ignore(1, '\n');
-	return c;
-}
 
-void newGame(int col, int row) {
-	system("CLS");
-	Map* map = new Map(col, row);
-	curtPlayer = 0;
+	char ch = ' ';
 	for (;;) {
-		map->show();
-		if (map->checkLink()) {
-			cout << "Player " << player[(curtPlayer + 1) % 2] << " win!" << endl;
-			return;
-		}
-		if (map->isFull()) {
-			cout << "Draw!" << endl;
-			return;
-		}
-
-		cout << "\nPlayer " << player[curtPlayer] << "'s turn. " << "Please Enter 1-" << map->cSize() << ": ";
-		int c = 0;
-		cin >> c;
-		cin.ignore(10000, '\n');	
-
-
-		int col = (int)c;
-		/*char c = cin.get();
-		cin.ignore(2, '\n');
-		int col = (int)c - 48;*/
-		// Check input
-		if (col > 0 && col < map->cSize() + 1) {
-			//Check
-			int row = map->addPiece(col - 1, player[curtPlayer]);
-			if (row == -1) {
-				system("CLS");
-				cout << "This column is full! Try another one." << endl;
-				continue;
-			}
-			else {
-				curtPlayer = (curtPlayer + 1) % 2;
-				system("CLS");
-			}
+		cin >> ch;
+		if (cin.fail()) {
+			cin.clear();
+			cin.ignore(numeric_limits<streamsize>::max(), '\n');
+			cout << "Error! ";
 		}
 		else {
-			system("CLS");
-			cout << "Invalid Input!" << endl;
+			return ch;
 		}
 	}
+}
+
+bool getBool() {
+	char ch = ' ';
+	for (;;) {
+		cout << "(y/n):";
+		cin >> ch;
+		if (cin.fail()) {
+			cin.clear();
+			cin.ignore(numeric_limits<streamsize>::max(), '\n');
+			cout << "Error! ";
+		}
+		else if (ch == 'y' || ch == 'Y' ) {
+			return true;
+		}
+		else if (ch == 'n' || ch == 'N') {
+			return false;
+		} 
+	}
+}
+int getNumber() {
+	int num = 0;
+	for (;;) {
+		cin >> num;
+		if (cin.fail()) {
+			cin.clear();
+			cin.ignore(numeric_limits<streamsize>::max(), '\n');
+			cout << "Invalid Input!" << endl;
+		}
+		else {
+			return num;
+		}
+	}
+}
+int getNumber(int min, int max) {
+	int num = 0;
+	for (;;) {
+		cout << "(between " << min << " and " << max << "):";
+		cin >> num;
+		if (cin.fail() || num<min || num>max) {
+			cin.clear();
+			cin.ignore(numeric_limits<streamsize>::max(), '\n');
+			cout << "Invalid Input!" << endl;
+		}
+		else {
+			return num;
+		}
+	}
+}
+#pragma endregion
 
 
+void gameSetup(int s[5]) {
+	system("CLS");
+	cout << "Columns ";
+	int col = getNumber(4, 20);
+	s[0] = col;
 
+	cout << "Rows ";
+	int row = getNumber(4, 20);
+	s[1] = row;
+
+	cout << "Required to win ";
+	int win = getNumber(3, 20);
+	s[2] = win;
+
+	cout << "Wrap around ";
+	int wrap = getBool() ? 1 : 0;
+	s[4] = wrap;
+
+	cout << "Can remove from bottom ";
+	int remove = getBool() ? 1 : 0;
+	s[5] = remove;
+	return;
+}
+
+void gameLoop(int args[5]) {
+	Map* map = new Map(args[0], args[1]);
+	
+	for (;;) {
+		system("CLS");
+		//Show current player
+		cout << "Player " << player[curtPlayer] << "'s turn. " << endl;
+
+		//Show map
+		map->show();
+
+		//Player Input
+		int col = 0, row = 0;
+		for (;;) {
+			cout << "Please Enter an integer ";
+			col = getNumber(1, args[0]);
+			row = map->addPiece(col - 1, player[curtPlayer]);
+			if (row == -1) {
+				cout << "This column is full! Try another one." << endl;
+			}
+			else { break; }
+		}
+		system("CLS");
+		map->show();
+
+		//Game End?
+		if (map->checkLink(col - 1, row, args[2])) {
+			cout << "Player " << player[curtPlayer] << " win!!!" << endl;
+			break;
+		}
+		if (map->isFull()) {
+			cout << "Draw!!!" << endl;
+			break;
+		}
+		//Next Player
+		curtPlayer = (curtPlayer + 1) % 2;
+	}
+
+	return;
 }
 
 int main() {
-	newGame(12, 8);
-	cout << "Enter 'R' to restart, other character to exit:";
-	char c = cin.get();
-	cin.ignore(1, '\n');
-	if (c == 'R' || c == 'r') { main(); }
+	bool restart = true;
+	do{
+		int setting[5] = { 7,6,4,0,0 };
+		gameSetup(setting);
+		//gameLoop(setting);
+
+		Map* map = new Map(setting[0], setting[1]);
+
+		//Game Loop
+		for (;;) {
+			system("CLS");
+			//Show current player
+			cout << "Player " << player[curtPlayer] << "'s turn. " << endl;
+
+			//Show map
+			map->show();
+
+			//Player Input
+			int col = 0, row = 0;
+			for (;;) {
+				cout << "Please Enter an integer ";
+				col = getNumber(1, setting[0]);
+				row = map->addPiece(col - 1, player[curtPlayer]);
+				if (row == -1) {
+					cout << "This column is full! Try another one." << endl;
+				}
+				else { break; }
+			}
+			system("CLS");
+			map->show();
+
+			//Game End?
+			if (map->checkLink(col - 1, row, setting[2])) {
+				cout << "Player " << player[curtPlayer] << " win!!!" << endl;
+				break;
+			}
+			if (map->isFull()) {
+				cout << "Draw!!!" << endl;
+				break;
+			}
+			//Next Player
+			curtPlayer = (curtPlayer + 1) % 2;
+		}
+
+		// Ask player to restart game or not.
+		for (;;) {
+			cout << "Restart?  ";
+
+			//bool tmp = getBool();
+			//if (!tmp) { restart = false; }
+			//cout << "end" << endl;
+			//break;
+			char c = ' ';
+			cin >> c;
+			if (c == 'Y' || c == 'y') { restart = true; break; }
+			else if (c == 'N' || c == 'n') { restart = false; break; }
+			else { 
+				cin.clear();
+				cin.ignore(numeric_limits<streamsize>::max(), '\n');
+				continue; 
+			}
+		}
+
+	} while (restart);
 	return 0;
 }
