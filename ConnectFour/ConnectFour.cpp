@@ -22,6 +22,7 @@ public:
 		}
 	}
 
+
 	Map() { initMap(); }
 	Map(int col, int row) {
 		colCount = col;
